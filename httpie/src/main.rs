@@ -1,9 +1,14 @@
-use clap::{AppSettings, Clap};
 use anyhow::{anyhow, Result};
-use reqwest::{header, Client, Response, Url};
-use std::{collections::HashMap, str::FromStr};
+use clap::{AppSettings, Clap};
 use colored::*;
 use mime::Mime;
+use reqwest::{header, Client, Response, Url};
+use std::{collections::HashMap, str::FromStr};
+
+use syntect::easy::HighlightLines;
+use syntect::highlighting::{Style, ThemeSet};
+use syntect::parsing::SyntaxSet;
+use syntect::util::{as_24_bit_terminal_escaped, LinesWithEndings};
 //
 //
 ///
@@ -32,7 +37,7 @@ fn parse_url(s: &str) -> Result<String> {
     let _url: Url = s.parse()?;
     Ok(s.into())
 }
-#[derive(Clap,Debug)]
+#[derive(Clap, Debug)]
 struct Post {
     #[clap(parse(try_from_str = parse_url))]
     url: String,
@@ -46,7 +51,7 @@ struct KvPair {
 }
 impl FromStr for KvPair {
     type Err = anyhow::Error;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split("=");
         let err = || anyhow!(format!("Failed to parse {}", s));
@@ -83,10 +88,23 @@ fn print_headers(resp: &Response) {
     }
     print!("\n");
 }
+
 fn print_body(m: Option<Mime>, body: &String) {
+    // Load these once at the start of your program
+    let ps = SyntaxSet::load_defaults_newlines();
+    let ts = ThemeSet::load_defaults();
+    let syntax = ps.find_syntax_by_extension("json").unwrap();
+    let mut h = HighlightLines::new(syntax, &ts.themes["base16-ocean.dark"]);
+
     match m {
         Some(v) if v == mime::APPLICATION_JSON => {
-            println!("{}", jsonxf::pretty_print(body).unwrap().cyan())
+            //println!("{}", jsonxf::pretty_print(body).unwrap().cyan())
+            let s = jsonxf::pretty_print(body).unwrap();
+            for line in LinesWithEndings::from(&s) {
+                let ranges: Vec<(Style, &str)> = h.highlight(line, &ps);
+                let escaped = as_24_bit_terminal_escaped(&ranges[..], true);
+                println!("{}", escaped);
+            }
         }
         _ => println!("{}", body),
     }
@@ -121,7 +139,6 @@ async fn main() -> Result<()> {
     };
 
     Ok(result)
-    
 }
 
 #[cfg(test)]
@@ -143,13 +160,15 @@ mod tests {
             KvPair {
                 k: "a".into(),
                 v: "1".into(),
-            });
+            }
+        );
 
         assert_eq!(
             parse_kv_pair("b=").unwrap(),
             KvPair {
                 k: "b".into(),
                 v: "".into(),
-            });
+            }
+        );
     }
 }
