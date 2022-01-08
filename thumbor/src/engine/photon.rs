@@ -18,7 +18,6 @@ lazy_static! {
 }
 
 pub struct Photon(PhotonImage);
-
 impl TryFrom<Bytes> for Photon {
     type Error = anyhow::Error;
 
@@ -38,6 +37,7 @@ impl Engine for Photon {
                 Some(spec::Data::Flipv(ref v)) => self.transform(v),
                 Some(spec::Data::Resize(ref v)) => self.transform(v),
                 Some(spec::Data::Watermark(ref v)) => self.transform(v),
+                Some(spec::Data::Oil(ref v)) => self.transform(v),
                 _ => {}
             }
         }
@@ -89,14 +89,13 @@ impl SpecTransform<&Resize> for Photon {
                 &mut self.0,
                 op.width,
                 op.height,
-                resize::SampleFilter::from_i32(op.filter).unwrap().into(),
-                ),
+                resize::SampleFilter::from_i32(op.filter).unwrap().into()
+            ),
             resize::ResizeType::SeamCarve => {
                 transform::seam_carve(&mut self.0, op.width, op.height)
             }
         };
-            self.0 = img;
-        
+        self.0 = img;
     }
 }
 
@@ -106,6 +105,11 @@ impl SpecTransform<&Watermark> for Photon {
     }
 }
 
+impl SpecTransform<&Oil> for Photon {
+    fn transform(&mut self, op: &Oil) {
+        effects::oil(&mut self.0, op.radius, op.intensity);
+    }
+}
 fn image_to_buf(img: PhotonImage, format: ImageOutputFormat) -> Vec<u8> {
     let raw_pixels = img.get_raw_pixels();
     let width = img.get_width();

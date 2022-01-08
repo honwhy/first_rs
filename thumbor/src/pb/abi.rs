@@ -79,8 +79,15 @@ pub struct Watermark {
     pub y: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Oil {
+    #[prost(int32, tag="1")]
+    pub radius: i32,
+    #[prost(double, tag="2")]
+    pub intensity: f64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Spec {
-    #[prost(oneof="spec::Data", tags="1, 2, 3, 4, 5, 6, 7")]
+    #[prost(oneof="spec::Data", tags="1, 2, 3, 4, 5, 6, 7, 8")]
     pub data: ::core::option::Option<spec::Data>,
 }
 /// Nested message and enum types in `Spec`.
@@ -101,5 +108,7 @@ pub mod spec {
         Filter(super::Filter),
         #[prost(message, tag="7")]
         Watermark(super::Watermark),
+        #[prost(message, tag="8")]
+        Oil(super::Oil),
     }
 }

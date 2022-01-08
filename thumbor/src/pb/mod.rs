@@ -6,9 +6,9 @@ use std::convert::TryFrom;
 mod abi;
 pub use abi::*;
 
-impl ImageSpec {
+impl  ImageSpec {
     pub fn new(specs: Vec<Spec>) -> Self {
-        Self { specs }
+        Self { specs}
     }
 }
 
@@ -27,7 +27,6 @@ impl TryFrom<&str> for ImageSpec {
         Ok(ImageSpec::decode(&data[..])?)
     }
 }
-
 
 impl filter::Filter {
     pub fn to_str(&self) -> Option<&'static str> {
@@ -75,17 +74,30 @@ impl Spec {
             })),
         }
     }
+
     pub fn new_filter(filter: filter::Filter) -> Self {
         Self {
             data: Some(spec::Data::Filter(Filter {
                 filter: filter as i32,
-            })),
+            }))
         }
     }
 
     pub fn new_watermark(x: u32, y: u32) -> Self {
         Self {
-            data: Some(spec::Data::Watermark(Watermark {x, y})),
+            data: Some(spec::Data::Watermark(Watermark {
+                x,
+                y,
+            }))
+        }
+    }
+
+    pub fn new_oil(radius: i32, intensity: f64) -> Self {
+        Self {
+            data: Some(spec::Data::Oil(Oil {
+                radius,
+                intensity,
+            }))
         }
     }
 }
