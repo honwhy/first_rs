@@ -2,7 +2,7 @@ use anyhow::Result;
 use axum::{
     extract::{Extension, Path}, 
     routing::get, 
-    http::{HeaderMap, HeaderValue,StatusCode, response}, 
+    http::{HeaderMap, HeaderValue,StatusCode}, 
     AddExtensionLayer, Router};
 use bytes::Bytes;
 use lru::LruCache;
