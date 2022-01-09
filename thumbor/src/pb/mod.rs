@@ -100,6 +100,12 @@ impl Spec {
             }))
         }
     }
+
+    pub fn new_fliph() -> Self {
+        Self {
+            data: Some(spec::Data::Fliph(Fliph {}))
+        }
+    }
 }
 
 #[cfg(test)]

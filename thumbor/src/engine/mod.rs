@@ -4,6 +4,9 @@ use image::ImageOutputFormat;
 mod photon;
 pub use photon::Photon;
 
+mod my_opencv;
+pub use my_opencv::Opencv;
+
 pub trait Engine {
     fn apply(&mut self, specs: &[Spec]);
 

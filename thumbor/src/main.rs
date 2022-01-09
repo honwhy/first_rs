@@ -22,7 +22,7 @@ mod pb;
 use pb::*;
 
 mod engine;
-use engine::{Engine, Photon};
+use engine::{Engine, Photon, Opencv};
 use image::ImageOutputFormat;
 
 #[derive(Deserialize)]
@@ -49,6 +49,8 @@ async fn main() {
     let addr = "127.0.0.1:3000".parse().unwrap();
 
     print_test_url("https://images.pexels.com/photos/1562477/pexels-photo-1562477.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260");
+    print_test_opencv_url("https://images.pexels.com/photos/1562477/pexels-photo-1562477.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260");
+
 
     info!("listening on {}", addr);
     axum::Server::bind(&addr)
@@ -72,7 +74,12 @@ async fn generate(
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?;
     
-    let mut engine: Photon = data
+    // let mut engine: Photon = data
+    //     .try_into()
+    //     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    // engine.apply(&spec.specs);
+
+    let mut engine: Opencv = data
         .try_into()
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     engine.apply(&spec.specs);
@@ -116,6 +123,19 @@ fn print_test_url(url: &str) {
     let spec3 = Spec::new_filter(filter::Filter::Marine);
     let spec4 = Spec::new_oil(4, 55.0);
     let image_spec = ImageSpec::new(vec![spec1, spec2, spec3, spec4]);
+    let s: String = image_spec.borrow().into();
+    let test_image = percent_encode(url.as_bytes(), NON_ALPHANUMERIC).to_string();
+    println!("test url: http://localhost:3000/image/{}/{}", s, test_image);
+}
+
+fn print_test_opencv_url(url: &str) {
+    use std::borrow::Borrow;
+    // let spec1 = Spec::new_resize(500, 800, resize::SampleFilter::CatmullRom);
+    // let spec2 = Spec::new_watermark(20, 20);
+    // let spec3 = Spec::new_filter(filter::Filter::Marine);
+    // let spec4 = Spec::new_oil(4, 55.0);
+    let spec1 = Spec::new_fliph();
+    let image_spec = ImageSpec::new(vec![spec1]);
     let s: String = image_spec.borrow().into();
     let test_image = percent_encode(url.as_bytes(), NON_ALPHANUMERIC).to_string();
     println!("test url: http://localhost:3000/image/{}/{}", s, test_image);
