@@ -20,6 +20,7 @@ use opencv::{
 	Result as OpencvResult,
 	types,
     imgcodecs,
+    xphoto,
 };
 
 pub struct Opencv(Mat);
@@ -43,10 +44,10 @@ impl Engine for Opencv {
                 // Some(spec::Data::Contrast(ref v)) => self.transform(v),
                 // Some(spec::Data::Filter(ref v)) => self.transform(v),
                 Some(spec::Data::Fliph(ref v)) => self.transform(v),
-                // Some(spec::Data::Flipv(ref v)) => self.transform(v),
+                Some(spec::Data::Flipv(ref v)) => self.transform(v),
                 // Some(spec::Data::Resize(ref v)) => self.transform(v),
                 // Some(spec::Data::Watermark(ref v)) => self.transform(v),
-                // Some(spec::Data::Oil(ref v)) => self.transform(v),
+                Some(spec::Data::Oil(ref v)) => self.transform(v),
                 _ => {}
             }
         }
@@ -73,9 +74,23 @@ impl Engine for Opencv {
 impl SpecTransform<&Fliph> for Opencv {
     fn transform(&mut self, _op: &Fliph) {
         let mut dest = Mat::default();
-        println!("Transform opencv fliph");
+        let _ = core::flip(&self.0, &mut dest, 1);
+        self.0 = dest;
+    }
+}
+
+impl SpecTransform<&Flipv> for Opencv {
+    fn transform(&mut self, _op: &Flipv) {
+        let mut dest = Mat::default();
         let _ = core::flip(&self.0, &mut dest, 0);
-		//let dest = imgcodecs::imdecode(&dest, imgcodecs::IMREAD_UNCHANGED).unwrap();
+        self.0 = dest;
+    }
+}
+
+impl SpecTransform<&Oil> for Opencv {
+    fn transform(&mut self, op: &Oil) {
+        let mut dest = Mat::default();
+        let _ = xphoto::oil_painting(&self.0, &mut dest, op.intensity as i32, op.radius, imgproc::ColorConversionCodes::COLOR_BGR2BGRA as i32);
         self.0 = dest;
     }
 }

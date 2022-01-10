@@ -133,10 +133,10 @@ fn print_test_opencv_url(url: &str) {
     // let spec1 = Spec::new_resize(500, 800, resize::SampleFilter::CatmullRom);
     // let spec2 = Spec::new_watermark(20, 20);
     // let spec3 = Spec::new_filter(filter::Filter::Marine);
-    // let spec4 = Spec::new_oil(4, 55.0);
+    let spec4 = Spec::new_oil(1, 10.0);
     let spec1 = Spec::new_fliph();
-    let image_spec = ImageSpec::new(vec![spec1]);
+    let image_spec = ImageSpec::new(vec![spec1, spec4]);
     let s: String = image_spec.borrow().into();
     let test_image = percent_encode(url.as_bytes(), NON_ALPHANUMERIC).to_string();
-    println!("test url: http://localhost:3000/image/{}/{}", s, test_image);
+    println!("test opencv url: http://localhost:3000/image/{}/{}", s, test_image);
 }
