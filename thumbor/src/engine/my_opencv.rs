@@ -1,6 +1,6 @@
 use super::{Engine, SpecTransform};
 use crate::pb::*;
-//use anyhow::Result;
+use anyhow::Result;
 use bytes::Bytes;
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat};
 use lazy_static::lazy_static;
@@ -17,7 +17,7 @@ use opencv::{
 	core::{self, UMat, UMatUsageFlags, Vector,Stream},
 	imgproc,
 	prelude::*,
-	Result,
+	Result as OpencvResult,
 	types,
     imgcodecs,
 };
@@ -29,7 +29,7 @@ impl TryFrom<Bytes> for Opencv {
 
     fn try_from(data: Bytes) -> Result<Self, Self::Error> {
         let src = Mat::from_slice::<u8>(data.as_ref())?;
-		let dest = imgcodecs::imdecode(&src, imgcodecs::IMREAD_COLOR)?;
+		let dest = imgcodecs::imdecode(&src, imgcodecs::IMREAD_UNCHANGED)?;
         Ok(Self(dest))
     }
     
@@ -54,10 +54,17 @@ impl Engine for Opencv {
 
     fn generate(self, format: ImageOutputFormat) -> Vec<u8> {
         let mut buf: Vector<u8> = Vector::new();
-        let mut flags: Vector<i32> = Vector::new();
-        flags.push(imgcodecs::ImwriteFlags::IMWRITE_JPEG_QUALITY as i32);
-        imgcodecs::imencode("jpeg", &self.0, &mut buf, &flags);
-        println!("after opencv imencode");
+        let flags: Vector<i32> = Vector::new();
+        let ext = match format {
+            ImageOutputFormat::Png => ".png",
+            ImageOutputFormat::Jpeg(_v) => ".jpeg",
+            ImageOutputFormat::Pnm(_v) => ".pnm",
+            ImageOutputFormat::Gif => ".gif",
+            ImageOutputFormat::Ico => ".ico",
+            ImageOutputFormat::Bmp => ".bmp",
+            _ => ".jpg"
+        };
+        let _ = imgcodecs::imencode(&ext, &self.0, &mut buf, &flags);
         buf.to_vec()
     }
     
@@ -67,7 +74,8 @@ impl SpecTransform<&Fliph> for Opencv {
     fn transform(&mut self, _op: &Fliph) {
         let mut dest = Mat::default();
         println!("Transform opencv fliph");
-        core::flip(&self.0, &mut dest, 1);
+        let _ = core::flip(&self.0, &mut dest, 0);
+		//let dest = imgcodecs::imdecode(&dest, imgcodecs::IMREAD_UNCHANGED).unwrap();
         self.0 = dest;
     }
 }

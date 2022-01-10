@@ -4,11 +4,13 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
+
         {
             "type": "lldb",
-            "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/<your program>",
+            "request": "attach",
+            "name": "Debug thumbor",
+            "program": "${workspaceFolder}/thumbor/target/debug/thumbor",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
