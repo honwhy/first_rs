@@ -75,7 +75,7 @@ impl SpecTransform<&Fliph> for Photon {
 impl SpecTransform<&Filter> for Photon {
     fn transform(&mut self, op: &Filter) {
         match filter::Filter::from_i32(op.filter) {
-            Some(filter::Filter::Unspecified) => {},
+            Some(filter::Filter::Unspecified) => {}
             Some(f) => filters::filter(&mut self.0, f.to_str().unwrap()),
             _ => {}
         }
@@ -89,7 +89,7 @@ impl SpecTransform<&Resize> for Photon {
                 &mut self.0,
                 op.width,
                 op.height,
-                resize::SampleFilter::from_i32(op.filter).unwrap().into()
+                resize::SampleFilter::from_i32(op.filter).unwrap().into(),
             ),
             resize::ResizeType::SeamCarve => {
                 transform::seam_carve(&mut self.0, op.width, op.height)

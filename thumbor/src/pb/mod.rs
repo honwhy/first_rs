@@ -6,9 +6,9 @@ use std::convert::TryFrom;
 mod abi;
 pub use abi::*;
 
-impl  ImageSpec {
+impl ImageSpec {
     pub fn new(specs: Vec<Spec>) -> Self {
-        Self { specs}
+        Self { specs }
     }
 }
 
@@ -79,31 +79,36 @@ impl Spec {
         Self {
             data: Some(spec::Data::Filter(Filter {
                 filter: filter as i32,
-            }))
+            })),
         }
     }
 
     pub fn new_watermark(x: u32, y: u32) -> Self {
         Self {
-            data: Some(spec::Data::Watermark(Watermark {
-                x,
-                y,
-            }))
+            data: Some(spec::Data::Watermark(Watermark { x, y })),
         }
     }
 
     pub fn new_oil(radius: i32, intensity: f64) -> Self {
         Self {
-            data: Some(spec::Data::Oil(Oil {
-                radius,
-                intensity,
-            }))
+            data: Some(spec::Data::Oil(Oil { radius, intensity })),
         }
     }
 
     pub fn new_fliph() -> Self {
         Self {
-            data: Some(spec::Data::Fliph(Fliph {}))
+            data: Some(spec::Data::Fliph(Fliph {})),
+        }
+    }
+
+    pub fn new_crop(x1: u32, y1: u32, x2: u32, y2: u32) -> Self {
+        Self {
+            data: Some(spec::Data::Crop(Crop { x1, y1, x2, y2 })),
+        }
+    }
+    pub fn new_contrast(v: f32)  -> Self {
+        Self {
+            data: Some(spec::Data::Contrast(Contrast { contrast: v })),
         }
     }
 }
