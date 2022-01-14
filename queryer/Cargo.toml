@@ -1,7 +1,6 @@
 [workspace]
-
 members = [
-"queryer",
-"queryer-py",
-"queryer-js"
+    "queryer",
+    "queryer-py",
+    "queryer-js"
 ]

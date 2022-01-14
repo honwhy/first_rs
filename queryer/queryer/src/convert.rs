@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Result};
 use polars::prelude::*;
 use sqlparser::ast::{
-    BinaryOperator as SqlBinaryOperator, Expr as SqlExpr, Offset as SqlOffset, OrderByExpr, Select, SelectItem, SetExpr, Statement, TableFactor, TableWithJoins, Value as SqlValue,
+    BinaryOperator as SqlBinaryOperator, Expr as SqlExpr, Offset as SqlOffset, OrderByExpr, Select,
+    SelectItem, SetExpr, Statement, TableFactor, TableWithJoins, Value as SqlValue,
 };
-use std::convert::{TryFrom, TryInto};
 
 pub struct Sql<'a> {
     pub(crate) selection: Vec<Expr>,
@@ -14,7 +14,6 @@ pub struct Sql<'a> {
     pub(crate) limit: Option<usize>,
 }
 
-
 pub struct Expression(pub(crate) Box<SqlExpr>);
 pub struct Operation(pub(crate) SqlBinaryOperator);
 pub struct Projection<'a>(pub(crate) &'a SelectItem);
@@ -24,9 +23,9 @@ pub struct Offset<'a>(pub(crate) &'a SqlOffset);
 pub struct Limit<'a>(pub(crate) &'a SqlExpr);
 pub struct Value(pub(crate) SqlValue);
 
+
 impl<'a> TryFrom<&'a Statement> for Sql<'a> {
     type Error = anyhow::Error;
-
     fn try_from(sql: &'a Statement) -> Result<Self, Self::Error> {
         match sql {
             Statement::Query(q) => {
@@ -42,7 +41,7 @@ impl<'a> TryFrom<&'a Statement> for Sql<'a> {
                     ..
                 } = match &q.body {
                     SetExpr::Select(statement) => statement.as_ref(),
-                    _ => return Err(anyhow!("we only support Select Query at the moment")),
+                    _ => return Err(anyhow!("We only support Select Query at the moment")),
                 };
 
                 let source = Source(table_with_joins).try_into()?;
@@ -75,7 +74,7 @@ impl<'a> TryFrom<&'a Statement> for Sql<'a> {
                     limit,
                 })
             }
-            _ => Err(anyhow!("We only support Query at the moment")),
+            _ => Err(anyhow!("we only support Query at the moment"))
         }
     }
 }
@@ -85,7 +84,7 @@ impl TryFrom<Expression> for Expr {
 
     fn try_from(expr: Expression) -> Result<Self, Self::Error> {
         match *expr.0 {
-            SqlExpr::BinaryOp { left, op, right } => Ok(Expr::BinaryExpr {
+            SqlExpr::BinaryOp {left, op, right} => Ok(Expr::BinaryExpr {
                 left: Box::new(Expression(left).try_into()?),
                 op: Operation(op).try_into()?,
                 right: Box::new(Expression(right).try_into()?),
@@ -93,15 +92,16 @@ impl TryFrom<Expression> for Expr {
             SqlExpr::Wildcard => Ok(Self::Wildcard),
             SqlExpr::IsNull(expr) => Ok(Self::IsNull(Box::new(Expression(expr).try_into()?))),
             SqlExpr::IsNotNull(expr) => Ok(Self::IsNotNull(Box::new(Expression(expr).try_into()?))),
-            SqlExpr::Identifier(id) => Ok(Self::Column(Arc::new(id.value))),
-            SqlExpr::Value(v) => Ok(Self::Literal(Value(v).try_into()?)),
-            v => Err(anyhow!("expr {:#?} is not supported", v)),
+            SqlExpr::Identifier(id) => Ok(Self::Column(Arc::from(id.value))),
+            SqlExpr::Value(v) =>Ok(Self::Literal(Value(v).try_into()?)), 
+            v => Err(anyhow!("expr {:#?} is not supported", v)),           
         }
     }
 }
 
+
 impl TryFrom<Operation> for Operator {
-    type Error = anyhow::Error;
+    type Error  = anyhow::Error;
 
     fn try_from(op: Operation) -> Result<Self, Self::Error> {
         match op.0 {
@@ -123,29 +123,28 @@ impl TryFrom<Operation> for Operator {
     }
 }
 
-
-impl<'a> TryFrom<Projection<'a>> for Expr {
-    type Error = anyhow::Error;
+impl<'a> TryFrom<Projection<'a>>for Expr {
+    type Error  = anyhow::Error;
 
     fn try_from(p: Projection<'a>) -> Result<Self, Self::Error> {
-       match p.0 {
-       SelectItem::UnnamedExpr(SqlExpr::Identifier(id)) => Ok(col(&id.to_string())),
-            SelectItem::ExprWithAlias {
+        match p.0 {
+            SelectItem::UnnamedExpr(SqlExpr::Identifier(id)) => Ok(col(&id.to_string())),
+            SelectItem::ExprWithAlias { 
                 expr: SqlExpr::Identifier(id),
                 alias,
             } => Ok(Expr::Alias(
-                Box::new(Expr::Column(Arc::new(id.to_string()))),
-                Arc::new(alias.to_string()),
+                Box::new(Expr::Column(Arc::from(id.value.to_string()))), 
+                Arc::from(alias.value.to_string()),
             )),
             SelectItem::QualifiedWildcard(v) => Ok(col(&v.to_string())),
             SelectItem::Wildcard => Ok(col("*")),
             item => Err(anyhow!("projection {} not supported", item)),
-       }
-
+        }
     }
 }
+
 impl<'a> TryFrom<Source<'a>> for &'a str {
-    type Error = anyhow::Error;
+    type Error  = anyhow::Error;
 
     fn try_from(source: Source<'a>) -> Result<Self, Self::Error> {
         if source.0.len() != 1 {
@@ -154,27 +153,23 @@ impl<'a> TryFrom<Source<'a>> for &'a str {
 
         let table = &source.0[0];
         if !table.joins.is_empty() {
-            return Err(anyhow!("We do not support joint data source at the moment"));
+            return Err(anyhow!("Wed do not support joint data source at the moment"));
         }
 
         match &table.relation {
-            TableFactor::Table { name, .. } => Ok(&name.0.first().unwrap().value),
+            TableFactor::Table {name, ..} => Ok(&name.0.first().unwrap().value),
             _ => Err(anyhow!("We only support table")),
         }
     }
 }
-/// 把 SqlParser 的 order by expr 转换成 (列名, 排序方法)
-impl<'a> TryFrom<Order<'a>> for (String, bool) {
-    type Error = anyhow::Error;
 
+impl<'a> TryFrom<Order<'a>> for (String, bool) {
+    type Error  = anyhow::Error;
     fn try_from(o: Order) -> Result<Self, Self::Error> {
         let name = match &o.0.expr {
-            SqlExpr::Identifier(id) => id.to_string(),
+            SqlExpr::Identifier(id) => id.to_string(), 
             expr => {
-                return Err(anyhow!(
-                    "We only support identifier for order by, got {}",
-                    expr
-                ))
+                return Err(anyhow!("We only support identifier for order by, got {}", expr))
             }
         };
 
@@ -182,7 +177,6 @@ impl<'a> TryFrom<Order<'a>> for (String, bool) {
     }
 }
 
-/// 把 SqlParser 的 offset expr 转换成 i64
 impl<'a> From<Offset<'a>> for i64 {
     fn from(offset: Offset) -> Self {
         match offset.0 {
@@ -195,25 +189,25 @@ impl<'a> From<Offset<'a>> for i64 {
     }
 }
 
-/// 把 SqlParser 的 Limit expr 转换成 usize
 impl<'a> From<Limit<'a>> for usize {
+
     fn from(l: Limit<'a>) -> Self {
         match l.0 {
-            SqlExpr::Value(SqlValue::Number(v, _b)) => v.parse().unwrap_or(usize::MAX),
+            SqlExpr::Value(SqlValue::Number(v, _b)) => v.parse().unwrap_or(0),
             _ => usize::MAX,
         }
     }
 }
 
-/// 把 SqlParser 的 value 转换成 DataFrame 支持的 LiteralValue
 impl TryFrom<Value> for LiteralValue {
-    type Error = anyhow::Error;
+    type Error  = anyhow::Error;
+
     fn try_from(v: Value) -> Result<Self, Self::Error> {
         match v.0 {
             SqlValue::Number(v, _) => Ok(LiteralValue::Float64(v.parse().unwrap())),
             SqlValue::Boolean(v) => Ok(LiteralValue::Boolean(v)),
             SqlValue::Null => Ok(LiteralValue::Null),
-            v => Err(anyhow!("Value {} is not supported", v)),
+            v => Err(anyhow!("Value {} is not supported",v)),
         }
     }
 }
@@ -221,9 +215,8 @@ impl TryFrom<Value> for LiteralValue {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::TyrDialect;
+    use crate::dialect::TyrDialect;
     use sqlparser::parser::Parser;
-    use std::convert::TryInto;
 
     #[test]
     fn parse_sql_works() {

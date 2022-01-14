@@ -1,16 +1,18 @@
 [package]
 name = "queryer-js"
 version = "0.1.0"
-edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "ISC"
+edition = "2021"
+exclude = ["index.node"]
 
 [lib]
 crate-type = ["cdylib"]
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
-queryer = { path = "../queryer" }
-tokio = { version = "1", features = ["full"] }
+queryer = {path = "../queryer" }
+tokio = {version = "1", features = ["full"]}
 
 [dependencies.neon]
 version = "0.9"

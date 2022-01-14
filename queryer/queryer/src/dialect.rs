@@ -21,12 +21,12 @@ pub fn example_sql() -> String {
 
     let sql = format!(
         "SELECT location name, total_cases, new_cases, total_deaths, new_deaths \
-        FROM {} where new_deaths > 500 ORDER BY new_cases DESC LIMIT 6 OFFSET 5",
+        FROM {} where new_deaths >= 500 ORDER BY new_cases DESC LIMIT 6 OFFSET 5",
         url
     );
-
-    sql
+    sql 
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -36,5 +36,6 @@ mod tests {
     #[test]
     fn it_works() {
         assert!(Parser::parse_sql(&TyrDialect::default(), &example_sql()).is_ok());
+
     }
 }

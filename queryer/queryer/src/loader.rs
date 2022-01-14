@@ -25,18 +25,18 @@ impl Loader {
     }
 }
 
+
 pub fn detect_content(data: String) -> Loader {
     Loader::Csv(CsvLoader(data))
 }
-
 
 impl Load for CsvLoader {
     type Error = anyhow::Error;
 
     fn load(self) -> Result<DataSet, Self::Error> {
         let df = CsvReader::new(Cursor::new(self.0))
-            .infer_schema(Some(16))
-            .finish()?;
-        Ok(DataSet(df))
+                .infer_schema(Some(16))
+                .finish()?;
+                Ok(DataSet(df))
     }
 }

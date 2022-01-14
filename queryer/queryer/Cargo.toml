@@ -1,21 +1,23 @@
 [package]
 name = "queryer"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [[example]]
 name = "dialect"
 
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
-sqlparser = "0.10"
-polars = {version = "0.15",features = ["json", "lazy"] }
-reqwest = {version = "0.11", default-feature = false, features = ["rustls-tls"]}
+sqlparser = "0.13.0"
+polars = {version = "0.18.0", features = ["json", "lazy"] }
+reqwest = {version = "0.11", default-features = false, features = ["rustls-tls"]}
 tokio = {version = "1", features = ["fs"]}
 tracing = "0.1"
 
 [dev-dependencies]
-tracing-subscriber = "0.2"
+tracing-subscriber ="0.3.5"
 tokio = {version = "1", features = ["full"]}
+

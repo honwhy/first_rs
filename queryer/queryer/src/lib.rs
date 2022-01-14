@@ -5,8 +5,8 @@ use std::convert::TryInto;
 use std::ops::{Deref, DerefMut};
 use tracing::info;
 
-mod convert;
 mod dialect;
+mod convert;
 mod loader;
 mod fetcher;
 use convert::Sql;
@@ -26,9 +26,7 @@ impl Deref for DataSet {
         &self.0
     }
 }
-
 impl DerefMut for DataSet {
-    //type Target = DataFrame;
 
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
@@ -43,7 +41,6 @@ impl DataSet {
         Ok(String::from_utf8(buf)?)
     }
 }
-
 
 pub async fn query<T: AsRef<str>>(sql: T) -> Result<DataSet> {
     let ast = Parser::parse_sql(&TyrDialect::default(), sql.as_ref())?;
@@ -66,7 +63,6 @@ pub async fn query<T: AsRef<str>>(sql: T) -> Result<DataSet> {
     info!("retrieving data from source: {}", source);
 
     let ds = detect_content(retrieve_data(source).await?).load()?;
-
     let mut filtered = match condition {
         Some(expr) => ds.0.lazy().filter(expr),
         None => ds.0.lazy(),
@@ -81,12 +77,4 @@ pub async fn query<T: AsRef<str>>(sql: T) -> Result<DataSet> {
     }
 
     Ok(DataSet(filtered.select(selection).collect()?))
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }

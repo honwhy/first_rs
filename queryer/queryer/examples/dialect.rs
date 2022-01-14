@@ -1,5 +1,6 @@
 use sqlparser::{dialect::GenericDialect, parser::Parser};
 
+
 fn main() {
     tracing_subscriber::fmt::init();
 
@@ -8,7 +9,19 @@ fn main() {
     WHERE a > b AND b < 100 AND c BETWEEN 10 AND 20 \
     ORDER BY a DESC, b \
     LIMIT 50 OFFSET 10";
-
+    
     let ast = Parser::parse_sql(&GenericDialect::default(), sql);
     println!("{:#?}", ast);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlparser::parser::Parser;
+
+    #[test]
+    fn it_works() {
+        assert!(Parser::parse_sql(&TyrDialect::default(), &example_sql()).is_ok());
+
+    }
 }
